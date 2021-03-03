@@ -29,7 +29,7 @@ const slugToPath = (slug) => {
 // initialize express app
 const app = express();
 
-// use middlewares
+// use middle wares
 app.use(cors());
 app.use(logger);
 app.use(bodyParser.json());
@@ -66,11 +66,16 @@ app.get('/api/page/:slug', async (req, res) => {
 app.post('/api/page/:slug', async (req, res) => {
   const filename = slugToPath(req.params.slug);
   try {
-
-  } catch (e) {
-
+    const givenFile = req.body.body;
+    await writeFile(filename, givenFile);
+    res.json({
+      status:'ok'
+    });
+ }catch(e) {
+    res.json({status: 'error', message:'Could not write page'});
   }
 });
+
 
 
 // GET: '/api/pages/all'
