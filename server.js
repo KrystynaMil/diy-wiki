@@ -45,6 +45,7 @@ app.use('/', express.static(path.join(__dirname, 'client', 'build')));
 // GET: '/api/page/:slug'
 // success response: {status: 'ok', body: '<file contents>'}
 // failure response: {status: 'error', message: 'Page does not exist.'}
+
 app.get('/api/page/:slug', async (req, res) => {
   const filename = slugToPath(req.params.slug);
   try {
@@ -63,6 +64,7 @@ app.get('/api/page/:slug', async (req, res) => {
 // tries to write the body to the given file
 //  success response: {status: 'ok'}
 //  failure response: {status: 'error', message: 'Could not write page.'}
+
 app.post('/api/page/:slug', async (req, res) => {
   const filename = slugToPath(req.params.slug);
   try {
@@ -83,6 +85,7 @@ app.post('/api/page/:slug', async (req, res) => {
 // file names do not have .md, just the name!
 //  success response: {status:'ok', pages: ['fileName', 'otherFileName']}
 //  failure response: no failure response
+
 app.get('/api/pages/all', async (req, res) => {
   const fileName = await readDir(DATA_DIR);
   const page = fileName.map(file => path.parse(file).name);
@@ -99,10 +102,14 @@ app.get('/api/pages/all', async (req, res) => {
 // hint: use the TAG_RE regular expression to search the contents of each file
 //  success response: {status:'ok', tags: ['tagName', 'otherTagName']}
 //  failure response: no failure response
+
 app.get('/api/tags/all', async (req, res) => {
-
-});
-
+    const fileName= await readDir(DATA_DIR);
+    let pages = fileName.map(page => path.parse(page).name)
+     pages.forEach(tag =>  tag.match(TAG_RE));
+     pages.push('default'); 
+    res.json({status:'ok', tags:pages})
+     });
 
 // GET: '/api/tags/:tag'
 // searches through the contents of each file looking for the :tag
