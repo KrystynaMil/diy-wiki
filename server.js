@@ -116,14 +116,27 @@ app.get('/api/tags/all', async (req, res) => {
 // it will send an array of all file names that contain this tag (without .md!)
 //  success response: {status:'ok', tag: 'tagName', pages: ['tagName', 'otherTagName']}
 //  failure response: no failure response
-app.get('/api/tags/:tag', async (req, res) => {
+app.get("/api/tags/:tag", async (req, res) => { 
+  const tagName = req.params.tag; 
+  let tagNames = await readDir(DATA_DIR); 
 
-});
+  tagNames = tagNames.map(a => path.join(DATA_DIR, a)); 
+  const allTagName = tagNames.map(async page => { 
+    const body = await readFile(page, "utf-8");
 
+   tagNames = body.match(TAG_RE); 
+   if (tagNames && tagNames.includes(`#${tagName}`)); 
+   return path.parse(page).name });
+   
+   allTagNames = await Promise.all(allTagName); 
+   otherTagName = allTagNames.filter(page => page); 
+   res.json({ status: "ok", tag: tagName, pages: otherTagName });
+   });
 
 // this needs to be here for the frontend to create new wiki pages
 //  if the route is not one from above
 //  it assumes the user is creating a new page
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
 });
