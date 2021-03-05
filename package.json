@@ -5,7 +5,7 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "demo": "node demo.min.js",
-    "heroku-postbuild": "cd client && npm && npm run build"
+   
   },
   "engines": {
     "node": "14.x"
