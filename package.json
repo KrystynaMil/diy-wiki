@@ -4,8 +4,7 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "demo": "node demo.min.js",
-   
+    "demo": "node demo.min.js"
   },
   "engines": {
     "node": "14.x"
