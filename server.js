@@ -18,7 +18,7 @@ const bodyParser = require('body-parser');
 const logger = require('./middleware/logger');
 
 // declare local constants and helper functions
-const PORT = process.env.PORT || 4600;
+const PORT = process.env.PORT || 3000;
 const DATA_DIR = 'data';
 const TAG_RE = /#\w+/g;
 const slugToPath = (slug) => {
@@ -68,11 +68,9 @@ app.get('/api/page/:slug', async (req, res) => {
 app.post('/api/page/:slug', async (req, res) => {
   const filename = slugToPath(req.params.slug);
   try {
-    const givenFile = req.body.body;
-    await writeFile(filename, givenFile);
-    res.json({
-      status:'ok'
-    });
+    const body = req.body.body;
+    await writeFile(filename, body);
+    res.json({status:'ok' });
  }catch(e) {
     res.json({status: 'error', message:'Could not write page'});
   }
@@ -103,35 +101,46 @@ app.get('/api/pages/all', async (req, res) => {
 //  success response: {status:'ok', tags: ['tagName', 'otherTagName']}
 //  failure response: no failure response
 
-app.get('/api/tags/all', async (req, res) => {
-    const fileName= await readDir(DATA_DIR);
-    let pages = fileName.map(page => path.parse(page).name)
-     pages.forEach(tag =>  tag.match(TAG_RE));
-     pages.push('default'); 
-    res.json({status:'ok', tags:pages})
-     });
+app.get('/api/tags/all', async(req, res) => {
+  try {
+      const fileName= await readDir(DATA_DIR);
+      const tagName = fileName.reduce((data, file) => {
+          data += fs.readFileSync(path.join(DATA_DIR, file), 'utf-8');
+          return data}, '');
+      const otherTagName = tagName.match(TAG_RE).map(tag => tag.split('#').join(''));
+
+      res.json({ status: 'ok', tags: otherTagName });
+
+  } catch (err) {
+      console.log(err)
+  }
+
+});
+
+
 
 // GET: '/api/tags/:tag'
 // searches through the contents of each file looking for the :tag
 // it will send an array of all file names that contain this tag (without .md!)
 //  success response: {status:'ok', tag: 'tagName', pages: ['tagName', 'otherTagName']}
 //  failure response: no failure response
-app.get("/api/tags/:tag", async (req, res) => { 
-  const tagName = req.params.tag; 
-  let tagNames = await readDir(DATA_DIR); 
+app.get('/api/tags/:tag', async(req, res) => {
+  const tagName = req.params.tag;
+  try {
+      const fileName = await readDir(DATA_DIR);
+      const otherTagName = [];
+fileName.forEach(file => {
+          const data = fs.readFileSync(path.join(DATA_DIR, file), 'utf-8')
+          if (data.includes(tagName)) {
+              otherTagName.push(file.split('.').slice(0, -1).join(''))
+          }
+      });
+res.json({ status: 'ok', tag: tagName, pages: otherTagName })
 
-  tagNames = tagNames.map(a => path.join(DATA_DIR, a)); 
-  const allTagName = tagNames.map(async page => { 
-    const body = await readFile(page, "utf-8");
+  } catch (err) {
+}
 
-   tagNames = body.match(TAG_RE); 
-   if (tagNames && tagNames.includes(`#${tagName}`)); 
-   return path.parse(page).name });
-   
-   allTagNames = await Promise.all(allTagName); 
-   otherTagName = allTagNames.filter(page => page); 
-   res.json({ status: "ok", tag: tagName, pages: otherTagName });
-   });
+});
 
 // this needs to be here for the frontend to create new wiki pages
 //  if the route is not one from above
